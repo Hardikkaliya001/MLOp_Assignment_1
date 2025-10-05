@@ -1,0 +1,37 @@
+name: ML Ops Assignment CI
+
+on:
+  push:
+    branches: [ main, dtree, kernelridge ]
+
+jobs:
+  run-models:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          # Also try branch-specific requirements
+          if [ -f dtree/requirements.txt ]; then pip install -r dtree/requirements.txt || true; fi
+          if [ -f kernelridge/requirements.txt ]; then pip install -r kernelridge/requirements.txt || true; fi
+
+      - name: Run Decision Tree (if present)
+        working-directory: dtree
+        run: |
+          echo "=== Running dtree/train.py ==="
+          python train.py || echo "dtree/train.py failed or missing"
+
+      - name: Run Kernel Ridge (if present)
+        working-directory: kernelridge
+        run: |
+          echo "=== Running kernelridge/train2.py ==="
+          python train2.py || echo "kernelridge/train2.py failed or missing"
